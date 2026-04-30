@@ -2,8 +2,70 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drag & Drop – Dienstbetrekkingen</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .container {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    .tekst {
+      max-width: 600px;
+    }
+
+    .dropzone {
+      display: inline-block;
+      min-width: 160px;
+      padding: 4px 6px;
+      margin: 0 4px;
+      border-bottom: 2px dashed #333;
+      vertical-align: middle;
+    }
+
+    .woorden {
+      min-width: 220px;
+    }
+
+    .draggable {
+      background: #eef;
+      border: 1px solid #333;
+      padding: 6px 10px;
+      margin-bottom: 6px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .draggable.dragging {
+      opacity: 0.5;
+    }
+
+    .dropzone.correct {
+      border-bottom: 2px solid green;
+    }
+
+    .dropzone.wrong {
+      border-bottom: 2px solid red;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 8px 14px;
+      font-size: 16px;
+    }
+
+    #feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
 
@@ -37,6 +99,60 @@
 <button id="check">Verzend</button>
 <p id="feedback"></p>
 
-<script src="script.js"></script>
+<script>
+  const draggables = document.querySelectorAll('.draggable');
+  const dropzones = document.querySelectorAll('.dropzone');
+  const feedback = document.getElementById('feedback');
+
+  let draggedItem = null;
+
+  draggables.forEach(item => {
+    item.addEventListener('dragstart', () => {
+      draggedItem = item;
+      item.classList.add('dragging');
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      draggedItem = null;
+    });
+  });
+
+  dropzones.forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+    });
+
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!draggedItem || zone.textContent !== "") return;
+
+      zone.textContent = draggedItem.textContent;
+      zone.dataset.given = draggedItem.textContent;
+      draggedItem.remove();
+    });
+  });
+
+  document.getElementById('check').addEventListener('click', () => {
+    let correct = 0;
+
+    dropzones.forEach(zone => {
+      zone.classList.remove('correct', 'wrong');
+
+      if (zone.dataset.given === zone.dataset.answer) {
+        zone.classList.add('correct');
+        correct++;
+      } else {
+        zone.classList.add('wrong');
+      }
+    });
+
+    feedback.textContent =
+      correct === dropzones.length
+        ? "✅ Alles correct!"
+        : `❌ ${correct} van de ${dropzones.length} goed`;
+  });
+</script>
+
 </body>
 </html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Drag & Drop – Dienstbetrekkingen</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<h2>Vul de juiste woorden in.</h2>
+
+<div class="container">
+
+  <div class="tekst">
+    <p>
+      Er zijn drie soorten dienstbetrekkingen. Als er een arbeidsovereenkomst
+      is opgezet tussen een bedrijf en een burger dan is dit een
+      <span class="dropzone" data-answer="privaatrechtelijke"></span>
+      dienstbetrekking. Een relatie tussen een burger en de overheid is een
+      <span class="dropzone" data-answer="publiekrechtelijke"></span>
+      dienstbetrekking. Daarnaast bestaat er ook nog de
+      <span class="dropzone" data-answer="fictieve"></span>
+      dienstbetrekking.
+    </p>
+  </div>
+
+  <div class="woorden">
+    <div class="draggable" draggable="true">pseudo</div>
+    <div class="draggable" draggable="true">privaatrechtelijke</div>
+    <div class="draggable" draggable="true">inhoudsplichtige</div>
+    <div class="draggable" draggable="true">publiekrechtelijke</div>
+    <div class="draggable" draggable="true">fictieve</div>
+  </div>
+
+</div>
+
+<button id="check">Verzend</button>
+<p id="feedback"></p>
+
+<script src="script.js"></script>
+</body>
+</html>

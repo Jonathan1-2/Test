@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Belast of onbelast loon? – BKL Salarisadministratie</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --coral-50: #FAECE7;
+      --coral-100: #F5C4B3;
+      --coral-200: #F0997B;
+      --coral-600: #993C1D;
+      --coral-700: #712B13;
+      --teal-50: #E1F5EE;
+      --teal-100: #9FE1CB;
+      --teal-200: #5DCAA5;
+      --teal-600: #0F6E56;
+      --teal-700: #085041;
+      --gray-50: #F7F6F3;
+      --gray-100: #EDEBE5;
+      --gray-200: #D3D1C7;
+      --gray-600: #5F5E5A;
+      --gray-800: #2C2C2A;
+      --red-50: #FCEBEB;
+      --red-200: #F09595;
+      --red-600: #A32D2D;
+      --green-50: #EAF3DE;
+      --green-200: #97C459;
+      --green-600: #3B6D11;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 999px;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: #F2F0EB;
+      color: var(--gray-800);
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .page-wrapper {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .header .eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--teal-600);
+      background: var(--teal-50);
+      border: 1px solid var(--teal-100);
+      border-radius: var(--radius-pill);
+      padding: 4px 14px;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 6px;
+    }
+    .header p {
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    /* Pool */
+    .pool-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+
+    .items-pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 72px;
+      align-items: flex-start;
+      align-content: flex-start;
+      background: white;
+      border: 1.5px dashed var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .items-pool.drag-over {
+      border-color: var(--teal-200);
+      background: var(--teal-50);
+    }
+
+    .drag-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px 7px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: grab;
+      user-select: none;
+      border: 1px solid var(--gray-200);
+      background: var(--gray-50);
+      color: var(--gray-800);
+      transition: transform 0.15s, border-color 0.2s, box-shadow 0.15s;
+    }
+    .drag-item:hover {
+      border-color: var(--gray-600);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
+    }
+    .drag-item:active { cursor: grabbing; transform: scale(1.02); }
+    .drag-item.dragging { opacity: 0.35; transform: scale(0.97); }
+
+    .grip {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5px;
+      opacity: 0.4;
+    }
+    .grip span {
+      display: block;
+      width: 12px;
+      height: 1.5px;
+      background: currentColor;
+      border-radius: 1px;
+    }
+
+    /* Drop zones */
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 520px) {
+      .columns { grid-template-columns: 1fr; }
+    }
+
+    .drop-zone {
+      border-radius: var(--radius-lg);
+      border: 1px solid transparent;
+      transition: border-color 0.2s;
+      overflow: hidden;
+    }
+
+    .drop-zone.drag-over .zone-content {
+      background: rgba(255,255,255,0.35);
+    }
+
+    .zone-belast {
+      background: var(--coral-50);
+      border-color: var(--coral-100);
+    }
+    .zone-onbelast {
+      background: var(--teal-50);
+      border-color: var(--teal-100);
+    }
+
+    .zone-header {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+    .zone-badge {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .zone-belast .zone-badge { color: var(--coral-600); }
+    .zone-onbelast .zone-badge { color: var(--teal-600); }
+
+    .zone-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 10px;
+    }
+
+    .subcats {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .subcat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      width: fit-content;
+    }
+    .zone-belast .subcat-pill { background: var(--coral-100); color: var(--coral-700); }
+    .zone-onbelast .subcat-pill { background: var(--teal-100); color: var(--teal-700); }
+
+    .subcat-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .zone-belast .subcat-dot { background: var(--coral-600); }
+    .zone-onbelast .subcat-dot { background: var(--teal-600); }
+
+    .zone-content {
+      min-height: 120px;
+      padding: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 7px;
+      transition: background 0.2s;
+    }
+
+    .empty-hint {
+      font-size: 12px;
+      color: var(--gray-600);
+      opacity: 0.65;
+      margin: auto;
+      text-align: center;
+      pointer-events: none;
+      padding: 1rem;
+      width: 100%;
+    }
+
+    /* Placed items */
+    .placed-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px 6px 9px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: grab;
+      border: 1px solid transparent;
+      transition: transform 0.15s;
+    }
+    .placed-item:active { cursor: grabbing; transform: scale(1.03); }
+    .placed-item.dragging { opacity: 0.35; }
+
+    .zone-belast .placed-item { background: var(--coral-100); color: var(--coral-700); border-color: var(--coral-200); }
+    .zone-onbelast .placed-item { background: var(--teal-100); color: var(--teal-700); border-color: var(--teal-200); }
+
+    .status-icon { display: none; font-size: 11px; }
+    .placed-item.correct .status-icon.ok { display: inline; }
+    .placed-item.wrong .status-icon.err { display: inline; }
+    .placed-item.wrong { background: var(--red-50) !important; color: var(--red-600) !important; border-color: var(--red-200) !important; }
+    .placed-item.correct { border-width: 1.5px; }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      padding: 9px 22px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--gray-200);
+      background: white;
+      color: var(--gray-800);
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .btn:hover { background: var(--gray-50); border-color: var(--gray-600); }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--teal-600);
+      color: white;
+      border-color: var(--teal-700);
+    }
+    .btn-primary:hover { background: var(--teal-700); }
+
+    /* Feedback */
+    .feedback {
+      display: none;
+      padding: 11px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+    }
+    .feedback.show { display: block; }
+    .feedback.ok { background: var(--green-50); color: var(--green-600); border: 1px solid var(--green-200); }
+    .feedback.err { background: var(--red-50); color: var(--red-600); border: 1px solid var(--red-200); }
+    .feedback.warn { background: #FAEEDA; color: #854F0B; border: 1px solid #FAC775; }
+
+    /* Progress */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--gray-600);
+      margin-bottom: 8px;
+    }
+    .progress-bar-wrap {
+      height: 4px;
+      background: var(--gray-100);
+      border-radius: var(--radius-pill);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--teal-200);
+      border-radius: var(--radius-pill);
+      transition: width 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <div class="header">
+    <span class="eyebrow">BKL Salarisadministratie</span>
+    <h1>Belast of onbelast loon?</h1>
+    <p>Sleep elk looncomponent naar de juiste categorie</p>
+  </div>
+
+  <div class="progress-row">
+    <span id="progress-text">0 van 10 geplaatst</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <p class="pool-label">Looncomponenten</p>
+  <div class="items-pool" id="pool"
+    ondragover="allowDrop(event, this)"
+    ondragleave="leaveDrop(this)"
+    ondrop="dropToPool(event)">
+  </div>
+
+  <div class="columns">
+    <div class="drop-zone zone-belast" id="zone-belast"
+      ondragover="allowDrop(event, this)"
+      ondragleave="leaveDrop(this)"
+      ondrop="dropToZone(event, 'belast')">
+      <div class="zone-header">
+        <div class="zone-badge">Categorie</div>
+        <div class="zone-title">Belast loon</div>
+        <div class="subcats">
+          <span class="subcat-pill"><span class="subcat-dot"></span>Loon in natura</span>
+          <span class="subcat-pill"><span class="subcat-dot"></span>Negatief loon</span>
+          <span class="subcat-pill"><span class="subcat-dot"></span>Fictief loon</span>
+        </div>
+      </div>
+      <div class="zone-content" id="content-belast">
+        <p class="empty-hint">Sleep items hiernaartoe</p>
+      </div>
+    </div>
+
+    <div class="drop-zone zone-onbelast" id="zone-onbelast"
+      ondragover="allowDrop(event, this)"
+      ondragleave="leaveDrop(this)"
+      ondrop="dropToZone(event, 'onbelast')">
+      <div class="zone-header">
+        <div class="zone-badge">Categorie</div>
+        <div class="zone-title">Onbelast loon</div>
+        <div class="subcats">
+          <span class="subcat-pill"><span class="subcat-dot"></span>Nihilwaardering</span>
+          <span class="subcat-pill"><span class="subcat-dot"></span>Vrijgestelde uitkering</span>
+          <span class="subcat-pill"><span class="subcat-dot"></span>Gerichte vrijstelling</span>
+        </div>
+      </div>
+      <div class="zone-content" id="content-onbelast">
+        <p class="empty-hint">Sleep items hiernaartoe</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="actions" style="margin-top: 1rem;">
+    <button class="btn" onclick="resetAll()">↺ Opnieuw beginnen</button>
+    <button class="btn btn-primary" onclick="checkAnswers()">Controleer antwoorden</button>
+  </div>
+
+</div>
+
+<script>
+  const items = [
+    { id: 'i1',  label: 'Reiskostenvergoeding (gericht vrijgesteld)',  correct: 'onbelast' },
+    { id: 'i2',  label: 'Maaltijd op de werkplek (nihilwaardering)',   correct: 'onbelast' },
+    { id: 'i3',  label: 'Bedrijfsauto privégebruik',                   correct: 'belast'   },
+    { id: 'i4',  label: 'Uitkering bij overlijden (vrijgesteld)',       correct: 'onbelast' },
+    { id: 'i5',  label: 'Loon in goederen (product werkgever)',         correct: 'belast'   },
+    { id: 'i6',  label: 'DGA fictief loon',                            correct: 'belast'   },
+    { id: 'i7',  label: 'Personeelskorting (gericht vrijgesteld)',      correct: 'onbelast' },
+    { id: 'i8',  label: 'Terugbetaling te veel ontvangen loon',        correct: 'belast'   },
+    { id: 'i9',  label: 'Kerstpakket (bovenmatig)',                    correct: 'belast'   },
+    { id: 'i10', label: 'Thuiswerkvergoeding (gericht vrijgesteld)',    correct: 'onbelast' },
+  ];
+
+  let draggingId = null;
+  let placements = {};
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function updateProgress() {
+    const total = items.length;
+    const placed = Object.keys(placements).length;
+    const pct = Math.round((placed / total) * 100);
+    document.getElementById('progress-text').textContent = placed + ' van ' + total + ' geplaatst';
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+  }
+
+  function makeGrip() {
+    return '<span class="grip"><span></span><span></span><span></span></span>';
+  }
+
+  function renderPool() {
+    const pool = document.getElementById('pool');
+    const unplaced = items.filter(it => !placements[it.id]);
+    if (unplaced.length === 0) {
+      pool.innerHTML = '<p class="empty-hint" style="pointer-events:none;">Alle items zijn geplaatst — druk op Controleer antwoorden</p>';
+      return;
+    }
+    pool.innerHTML = '';
+    unplaced.forEach(it => {
+      const el = document.createElement('div');
+      el.className = 'drag-item';
+      el.draggable = true;
+      el.dataset.id = it.id;
+      el.innerHTML = makeGrip() + it.label;
+      el.addEventListener('dragstart', e => { draggingId = it.id; setTimeout(() => el.classList.add('dragging'), 0); });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+      pool.appendChild(el);
+    });
+  }
+
+  function renderZone(zone) {
+    const content = document.getElementById('content-' + zone);
+    const placed = items.filter(it => placements[it.id] === zone);
+    if (placed.length === 0) {
+      content.innerHTML = '<p class="empty-hint">Sleep items hiernaartoe</p>';
+      return;
+    }
+    content.innerHTML = '';
+    placed.forEach(it => {
+      const el = document.createElement('div');
+      el.className = 'placed-item';
+      el.draggable = true;
+      el.dataset.id = it.id;
+      el.innerHTML = '<span class="status-icon ok">✓ </span><span class="status-icon err">✗ </span>' + it.label;
+      el.addEventListener('dragstart', e => { draggingId = it.id; setTimeout(() => el.classList.add('dragging'), 0); });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+      content.appendChild(el);
+    });
+  }
+
+  function renderAll() {
+    renderPool();
+    renderZone('belast');
+    renderZone('onbelast');
+    updateProgress();
+  }
+
+  function allowDrop(e, el) {
+    e.preventDefault();
+    el.classList.add('drag-over');
+  }
+  function leaveDrop(el) {
+    el.classList.remove('drag-over');
+  }
+
+  function dropToZone(e, zone) {
+    e.preventDefault();
+    document.querySelectorAll('.drop-zone, .items-pool').forEach(z => z.classList.remove('drag-over'));
+    if (!draggingId) return;
+    placements[draggingId] = zone;
+    draggingId = null;
+    clearFeedback();
+    renderAll();
+  }
+
+  function dropToPool(e) {
+    e.preventDefault();
+    document.getElementById('pool').classList.remove('drag-over');
+    if (!draggingId) return;
+    delete placements[draggingId];
+    draggingId = null;
+    clearFeedback();
+    renderAll();
+  }
+
+  function checkAnswers() {
+    const placed = Object.keys(placements);
+    if (placed.length === 0) {
+      showFeedback('Plaats eerst een of meer items voordat je controleert.', 'warn');
+      return;
+    }
+    let correct = 0, wrong = 0;
+    ['belast', 'onbelast'].forEach(zone => {
+      document.getElementById('content-' + zone).querySelectorAll('.placed-item').forEach(el => {
+        const item = items.find(i => i.id === el.dataset.id);
+        el.classList.remove('correct', 'wrong');
+        if (item.correct === zone) { el.classList.add('correct'); correct++; }
+        else { el.classList.add('wrong'); wrong++; }
+      });
+    });
+    if (placed.length < items.length) {
+      showFeedback(correct + ' van ' + placed.length + ' geplaatste items correct. Er zijn nog ' + (items.length - placed.length) + ' items over.', wrong === 0 ? 'ok' : 'err');
+    } else if (wrong === 0) {
+      showFeedback('🎉 Uitstekend! Alle ' + correct + ' looncomponenten zijn correct ingedeeld.', 'ok');
+    } else {
+      showFeedback(correct + ' van ' + items.length + ' correct. Rode items staan in de verkeerde categorie — sleep ze naar de juiste kant.', 'err');
+    }
+  }
+
+  function showFeedback(msg, type) {
+    const bar = document.getElementById('feedback');
+    bar.className = 'feedback show ' + type;
+    bar.textContent = msg;
+  }
+
+  function clearFeedback() {
+    document.getElementById('feedback').className = 'feedback';
+    ['belast','onbelast'].forEach(z => {
+      document.getElementById('content-' + z).querySelectorAll('.placed-item').forEach(el => el.classList.remove('correct','wrong'));
+    });
+  }
+
+  function resetAll() {
+    placements = {};
+    clearFeedback();
+    shuffle(items);
+    renderAll();
+  }
+
+  shuffle(items);
+  renderAll();
+</script>
+</body>
+</html>

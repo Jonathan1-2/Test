@@ -26,30 +26,26 @@
     }
 
     .dropzone {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
       min-width: 180px;
       height: 34px;
       background: #dfe8f5;
       border-radius: 6px;
       margin: 0 6px;
-      vertical-align: middle;
       padding: 4px 10px;
       box-sizing: border-box;
     }
 
-    .dropzone.correct {
-      background: #d1fae5;
-    }
-
-    .dropzone.wrong {
-      background: #fee2e2;
-    }
+    .dropzone.correct { background: #d1fae5; }
+    .dropzone.wrong   { background: #fee2e2; }
 
     .woorden {
       margin-top: 20px;
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      min-height: 50px;
     }
 
     .draggable {
@@ -66,16 +62,19 @@
 
     .draggable::before {
       content: "⋮⋮";
-      font-weight: bold;
       color: #7b8bb0;
+      font-weight: bold;
     }
 
-    .draggable.dragging {
-      opacity: 0.5;
+    .dragging { opacity: 0.5; }
+
+    .knoppen {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
     }
 
     button {
-      margin-top: 24px;
       background: #0078d4;
       color: white;
       border: none;
@@ -85,30 +84,20 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background: #0163b1;
+    button:hover { background: #0163b1; }
+
+    button.secundair {
+      background: #9ca3af;
+    }
+
+    button.secundair:hover {
+      background: #6b7280;
     }
 
     #feedback {
       margin-top: 12px;
       font-weight: bold;
     }
-
-    .knoppen {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-button.secundair {
-  background: #9ca3af;
-  color: white;
-}
-
-button.secundair:hover {
-  background: #6b7280;
-}
-``
   </style>
 </head>
 
@@ -124,12 +113,10 @@ button.secundair:hover {
   <span class="dropzone" data-answer="publiekrechtelijke"></span>
   dienstbetrekking. Daarnaast bestaat er ook nog de
   <span class="dropzone" data-answer="fictieve"></span>
-  dienstbetrekking. Dit zijn relaties die technisch gezien niet alle
-  elementen van een dienstbetrekking bevatten maar in de ogen van de
-  belastingdienst wel wordt gezien als een ware dienstbetrekking.
+  dienstbetrekking.
 </div>
 
-<div class="woorden">
+<div class="woorden" id="woorden">
   <div class="draggable" draggable="true">privaatrechtelijke</div>
   <div class="draggable" draggable="true">inhoudsplichtige</div>
   <div class="draggable" draggable="true">fictieve</div>
@@ -142,14 +129,15 @@ button.secundair:hover {
   <button id="reset" class="secundair">Overnieuw</button>
 </div>
 
+<p id="feedback"></p>
+
 <script>
-  const draggables = document.querySelectorAll('.draggable');
+  let draggedItem = null;
   const dropzones = document.querySelectorAll('.dropzone');
+  const woordenContainer = document.getElementById('woorden');
   const feedback = document.getElementById('feedback');
 
-  let draggedItem = null;
-
-  draggables.forEach(item => {
+  function enableDragging(item) {
     item.addEventListener('dragstart', () => {
       draggedItem = item;
       item.classList.add('dragging');
@@ -159,7 +147,9 @@ button.secundair:hover {
       item.classList.remove('dragging');
       draggedItem = null;
     });
-  });
+  }
+
+  document.querySelectorAll('.draggable').forEach(enableDragging);
 
   dropzones.forEach(zone => {
     zone.addEventListener('dragover', e => e.preventDefault());
@@ -170,7 +160,27 @@ button.secundair:hover {
 
       zone.textContent = draggedItem.textContent;
       zone.dataset.given = draggedItem.textContent;
-      draggedItem.remove();
+      draggedItem.style.display = 'none';
+      draggedItem.dataset.used = 'true';
+    });
+  });
+
+  // Terugslepen naar woordlijst
+  woordenContainer.addEventListener('dragover', e => e.preventDefault());
+
+  woordenContainer.addEventListener('drop', e => {
+    e.preventDefault();
+    if (!draggedItem) return;
+
+    draggedItem.style.display = '';
+    delete draggedItem.dataset.used;
+
+    dropzones.forEach(zone => {
+      if (zone.dataset.given === draggedItem.textContent) {
+        zone.textContent = '';
+        delete zone.dataset.given;
+        zone.classList.remove('correct', 'wrong');
+      }
     });
   });
 
@@ -190,54 +200,24 @@ button.secundair:hover {
 
     feedback.textContent =
       correct === dropzones.length
-        ? "✅ Alles correct!"
+        ? '✅ Alles correct!'
         : `❌ ${correct} van de ${dropzones.length} goed`;
   });
 
   document.getElementById('reset').addEventListener('click', () => {
-  // dropzones leegmaken
-  dropzones.forEach(zone => {
-    zone.textContent = '';
-    delete zone.dataset.given;
-    zone.classList.remove('correct', 'wrong');
-  });
-
-  // feedback leeg
-  feedback.textContent = '';
-
-  // woorden opnieuw toevoegen
-  const woordenContainer = document.querySelector('.woorden');
-  const origineleWoorden = [
-    'privaatrechtelijke',
-    'inhoudsplichtige',
-    'fictieve',
-    'publiekrechtelijke',
-    'pseudo'
-  ];
-
-  woordenContainer.innerHTML = '';
-  origineleWoorden.forEach(woord => {
-    const div = document.createElement('div');
-    div.className = 'draggable';
-    div.draggable = true;
-    div.textContent = woord;
-    woordenContainer.appendChild(div);
-  });
-
-  // drag-events opnieuw koppelen
-  document.querySelectorAll('.draggable').forEach(item => {
-    item.addEventListener('dragstart', () => {
-      draggedItem = item;
-      item.classList.add('dragging');
+    dropzones.forEach(zone => {
+      zone.textContent = '';
+      delete zone.dataset.given;
+      zone.classList.remove('correct', 'wrong');
     });
 
-    item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      draggedItem = null;
+    document.querySelectorAll('.draggable').forEach(item => {
+      item.style.display = '';
+      delete item.dataset.used;
     });
-  });
-});
 
+    feedback.textContent = '';
+  });
 </script>
 
 </body>

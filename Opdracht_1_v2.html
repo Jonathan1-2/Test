@@ -93,6 +93,22 @@
       margin-top: 12px;
       font-weight: bold;
     }
+
+    .knoppen {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+button.secundair {
+  background: #9ca3af;
+  color: white;
+}
+
+button.secundair:hover {
+  background: #6b7280;
+}
+``
   </style>
 </head>
 
@@ -121,8 +137,10 @@
   <div class="draggable" draggable="true">pseudo</div>
 </div>
 
-<button id="check">Verzend</button>
-<p id="feedback"></p>
+<div class="knoppen">
+  <button id="check">Verzend</button>
+  <button id="reset" class="secundair">Overnieuw</button>
+</div>
 
 <script>
   const draggables = document.querySelectorAll('.draggable');
@@ -175,6 +193,51 @@
         ? "✅ Alles correct!"
         : `❌ ${correct} van de ${dropzones.length} goed`;
   });
+
+  document.getElementById('reset').addEventListener('click', () => {
+  // dropzones leegmaken
+  dropzones.forEach(zone => {
+    zone.textContent = '';
+    delete zone.dataset.given;
+    zone.classList.remove('correct', 'wrong');
+  });
+
+  // feedback leeg
+  feedback.textContent = '';
+
+  // woorden opnieuw toevoegen
+  const woordenContainer = document.querySelector('.woorden');
+  const origineleWoorden = [
+    'privaatrechtelijke',
+    'inhoudsplichtige',
+    'fictieve',
+    'publiekrechtelijke',
+    'pseudo'
+  ];
+
+  woordenContainer.innerHTML = '';
+  origineleWoorden.forEach(woord => {
+    const div = document.createElement('div');
+    div.className = 'draggable';
+    div.draggable = true;
+    div.textContent = woord;
+    woordenContainer.appendChild(div);
+  });
+
+  // drag-events opnieuw koppelen
+  document.querySelectorAll('.draggable').forEach(item => {
+    item.addEventListener('dragstart', () => {
+      draggedItem = item;
+      item.classList.add('dragging');
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      draggedItem = null;
+    });
+  });
+});
+
 </script>
 
 </body>

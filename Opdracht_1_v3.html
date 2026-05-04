@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opdracht: Dienstbetrekkingen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --lms-bg: #F0F2F5;
+    --lms-surface: #FFFFFF;
+    --lms-green: #2E7D32;
+    --lms-green-mid: #43A047;
+    --lms-green-light: #E8F5E9;
+    --lms-green-chip: #C8E6C9;
+    --lms-text: #1A1A1A;
+    --lms-text-muted: #5F6368;
+    --lms-border: #DADCE0;
+    --lms-drop-idle: #F1F3F4;
+    --lms-drop-hover: #E8F5E9;
+    --lms-radius: 8px;
+    --lms-correct: #2E7D32;
+    --lms-correct-bg: #E8F5E9;
+    --lms-error: #C62828;
+    --lms-error-bg: #FFEBEE;
+  }
+
+  html, body {
+    background: transparent;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--lms-text);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .exercise {
+    background: var(--lms-surface);
+    border: 1px solid var(--lms-border);
+    border-radius: var(--lms-radius);
+    padding: 1.75rem 2rem;
+    margin: 0;
+  }
+
+  /* Title bar matching LMS heading style */
+  .exercise-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--lms-text);
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--lms-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .exercise-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: var(--lms-green);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Text passage */
+  .passage {
+    font-size: 15px;
+    line-height: 1.85;
+    color: var(--lms-text);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Drop zones */
+  .drop-zone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 155px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 4px;
+    border: 1.5px dashed var(--lms-border);
+    background: var(--lms-drop-idle);
+    vertical-align: middle;
+    margin: 0 3px;
+    position: relative;
+    transition: border-color 0.12s, background 0.12s;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--lms-text-muted);
+  }
+
+  .drop-zone.drag-over {
+    border-color: var(--lms-green-mid);
+    background: var(--lms-drop-hover);
+  }
+
+  .drop-zone.filled {
+    border-style: solid;
+    border-color: var(--lms-green-mid);
+    background: var(--lms-green-light);
+    color: var(--lms-green);
+    font-weight: 500;
+    font-size: 13.5px;
+  }
+
+  .drop-zone.correct {
+    border-color: var(--lms-correct);
+    background: var(--lms-correct-bg);
+    color: var(--lms-correct);
+  }
+
+  .drop-zone.incorrect {
+    border-color: var(--lms-error);
+    background: var(--lms-error-bg);
+    color: var(--lms-error);
+  }
+
+  .placeholder {
+    font-size: 12px;
+    color: #BDBDBD;
+    letter-spacing: 0.08em;
+  }
+
+  /* Word bank */
+  .wordbank-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--lms-text-muted);
+    margin-bottom: 10px;
+  }
+
+  .wordbank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 16px;
+    background: var(--lms-bg);
+    border: 1px solid var(--lms-border);
+    border-radius: var(--lms-radius);
+    margin-bottom: 1.5rem;
+    min-height: 54px;
+  }
+
+  .word-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: var(--lms-surface);
+    border: 1px solid var(--lms-border);
+    border-radius: 100px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--lms-text);
+    cursor: grab;
+    transition: background 0.1s, border-color 0.1s, box-shadow 0.1s, opacity 0.1s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .word-chip:hover {
+    background: var(--lms-green-light);
+    border-color: var(--lms-green-mid);
+    color: var(--lms-green);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .word-chip:active, .word-chip.dragging {
+    cursor: grabbing;
+    opacity: 0.45;
+  }
+
+  .word-chip.used {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .word-chip.selected {
+    background: var(--lms-green-light);
+    border-color: var(--lms-green);
+    color: var(--lms-green);
+    box-shadow: 0 0 0 2px var(--lms-green-chip);
+  }
+
+  /* Grip icon */
+  .grip {
+    width: 8px;
+    height: 8px;
+    opacity: 0.4;
+    flex-shrink: 0;
+  }
+
+  /* Buttons — match LMS green button style */
+  .actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.12s, opacity 0.12s;
+  }
+
+  .btn-primary {
+    background: var(--lms-green);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #1B5E20; }
+  .btn-primary:disabled { background: #A5D6A7; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--lms-text-muted);
+    border: 1px solid var(--lms-border);
+  }
+  .btn-secondary:hover { background: var(--lms-drop-idle); color: var(--lms-text); }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 1rem;
+    padding: 10px 14px;
+    border-radius: var(--lms-radius);
+    font-size: 13.5px;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .feedback.success { display: flex; background: var(--lms-correct-bg); color: var(--lms-correct); border: 1px solid #A5D6A7; }
+  .feedback.partial  { display: flex; background: #FFF8E1; color: #E65100; border: 1px solid #FFD54F; }
+  .feedback.wrong    { display: flex; background: var(--lms-error-bg); color: var(--lms-error); border: 1px solid #EF9A9A; }
+
+  .feedback-icon { font-size: 15px; flex-shrink: 0; }
+
+  .score {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--lms-text-muted);
+    display: none;
+  }
+  .score strong { color: var(--lms-text); }
+</style>
+</head>
+<body>
+
+<div class="exercise">
+
+  <div class="exercise-title">Vul de juiste woorden in</div>
+
+  <p class="passage">
+    Er zijn drie soorten dienstbetrekkingen. Als er een arbeidsovereenkomst is opgezet tussen een bedrijf en een burger dan is dit een
+    <span class="drop-zone" data-answer="privaatrechtelijke" id="drop-1"><span class="placeholder">···</span></span>
+    dienstbetrekking. Een relatie tussen een burger en de overheid is een
+    <span class="drop-zone" data-answer="publiekrechtelijke" id="drop-2"><span class="placeholder">···</span></span>
+    dienstbetrekking. Daarnaast bestaat er ook nog de
+    <span class="drop-zone" data-answer="fictieve" id="drop-3"><span class="placeholder">···</span></span>
+    dienstbetrekking. Dit zijn relaties die technisch gezien niet alle elementen van een dienstbetrekking bevatten maar in de ogen van de belastingdienst wel wordt gezien als een ware dienstbetrekking.
+  </p>
+
+  <div class="wordbank-label">Kies een woord</div>
+  <div class="wordbank" id="wordbank">
+    <div class="word-chip" draggable="true" data-word="privaatrechtelijke" id="chip-privaatrechtelijke">
+      <svg class="grip" viewBox="0 0 8 8" fill="currentColor"><circle cx="2" cy="2" r="1"/><circle cx="6" cy="2" r="1"/><circle cx="2" cy="6" r="1"/><circle cx="6" cy="6" r="1"/></svg>
+      privaatrechtelijke
+    </div>
+    <div class="word-chip" draggable="true" data-word="inhoudsplichtige" id="chip-inhoudsplichtige">
+      <svg class="grip" viewBox="0 0 8 8" fill="currentColor"><circle cx="2" cy="2" r="1"/><circle cx="6" cy="2" r="1"/><circle cx="2" cy="6" r="1"/><circle cx="6" cy="6" r="1"/></svg>
+      inhoudsplichtige
+    </div>
+    <div class="word-chip" draggable="true" data-word="fictieve" id="chip-fictieve">
+      <svg class="grip" viewBox="0 0 8 8" fill="currentColor"><circle cx="2" cy="2" r="1"/><circle cx="6" cy="2" r="1"/><circle cx="2" cy="6" r="1"/><circle cx="6" cy="6" r="1"/></svg>
+      fictieve
+    </div>
+    <div class="word-chip" draggable="true" data-word="publiekrechtelijke" id="chip-publiekrechtelijke">
+      <svg class="grip" viewBox="0 0 8 8" fill="currentColor"><circle cx="2" cy="2" r="1"/><circle cx="6" cy="2" r="1"/><circle cx="2" cy="6" r="1"/><circle cx="6" cy="6" r="1"/></svg>
+      publiekrechtelijke
+    </div>
+    <div class="word-chip" draggable="true" data-word="pseudo" id="chip-pseudo">
+      <svg class="grip" viewBox="0 0 8 8" fill="currentColor"><circle cx="2" cy="2" r="1"/><circle cx="6" cy="2" r="1"/><circle cx="2" cy="6" r="1"/><circle cx="6" cy="6" r="1"/></svg>
+      pseudo
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="btnCheck" disabled>Controleer</button>
+    <button class="btn btn-secondary" id="btnReset">Opnieuw</button>
+    <div class="score" id="score">Score: <strong id="scoreText">0/3</strong></div>
+  </div>
+
+  <div class="feedback" id="feedback">
+    <span class="feedback-icon" id="feedbackIcon"></span>
+    <span id="feedbackText"></span>
+  </div>
+
+</div>
+
+<script>
+  const drops = document.querySelectorAll('.drop-zone');
+  const chips = document.querySelectorAll('.word-chip');
+  const btnCheck = document.getElementById('btnCheck');
+  const btnReset = document.getElementById('btnReset');
+  const feedback = document.getElementById('feedback');
+  const score = document.getElementById('score');
+  const scoreText = document.getElementById('scoreText');
+
+  let dragged = null;
+  let selected = null;
+
+  function updateCheck() {
+    btnCheck.disabled = [...drops].some(d => !d.dataset.current);
+  }
+
+  function returnChip(word) {
+    const c = document.getElementById('chip-' + word);
+    if (c) c.classList.remove('used');
+  }
+
+  function fillDrop(drop, word) {
+    const old = drop.dataset.current;
+    if (old) returnChip(old);
+    drop.dataset.current = word;
+    drop.textContent = word;
+    drop.classList.add('filled');
+    drop.classList.remove('correct', 'incorrect');
+    const c = document.getElementById('chip-' + word);
+    if (c) c.classList.add('used');
+    updateCheck();
+  }
+
+  function clearDrop(drop) {
+    const word = drop.dataset.current;
+    if (!word) return;
+    returnChip(word);
+    delete drop.dataset.current;
+    drop.innerHTML = '<span class="placeholder">···</span>';
+    drop.classList.remove('filled', 'correct', 'incorrect');
+    updateCheck();
+  }
+
+  chips.forEach(chip => {
+    chip.addEventListener('dragstart', e => { dragged = chip.dataset.word; chip.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    chip.addEventListener('dragend', () => { chip.classList.remove('dragging'); dragged = null; });
+    chip.addEventListener('click', () => {
+      if (chip.classList.contains('used')) return;
+      if (selected === chip) { chip.classList.remove('selected'); selected = null; return; }
+      if (selected) selected.classList.remove('selected');
+      selected = chip;
+      chip.classList.add('selected');
+    });
+  });
+
+  drops.forEach(drop => {
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault();
+      drop.classList.remove('drag-over');
+      if (dragged) fillDrop(drop, dragged);
+    });
+    drop.addEventListener('click', () => {
+      if (selected) {
+        fillDrop(drop, selected.dataset.word);
+        selected.classList.remove('selected');
+        selected = null;
+      } else if (drop.dataset.current) {
+        clearDrop(drop);
+      }
+    });
+  });
+
+  btnCheck.addEventListener('click', () => {
+    let correct = 0;
+    drops.forEach(drop => {
+      if (drop.dataset.current === drop.dataset.answer) { drop.classList.add('correct'); drop.classList.remove('incorrect'); correct++; }
+      else { drop.classList.add('incorrect'); drop.classList.remove('correct'); }
+    });
+    chips.forEach(c => c.style.pointerEvents = 'none');
+    btnCheck.disabled = true;
+    const total = drops.length;
+    scoreText.textContent = correct + '/' + total;
+    score.style.display = 'block';
+    feedback.className = 'feedback';
+    if (correct === total) {
+      feedback.classList.add('success');
+      document.getElementById('feedbackIcon').textContent = '✓';
+      document.getElementById('feedbackText').textContent = 'Uitstekend! Alle antwoorden zijn correct.';
+    } else if (correct > 0) {
+      feedback.classList.add('partial');
+      document.getElementById('feedbackIcon').textContent = '◎';
+      document.getElementById('feedbackText').textContent = correct + ' van de ' + total + ' antwoorden correct. Bekijk de rood gemarkeerde velden.';
+    } else {
+      feedback.classList.add('wrong');
+      document.getElementById('feedbackIcon').textContent = '✕';
+      document.getElementById('feedbackText').textContent = 'Geen enkel antwoord is correct. Probeer het opnieuw.';
+    }
+  });
+
+  btnReset.addEventListener('click', () => {
+    drops.forEach(d => { delete d.dataset.current; d.innerHTML = '<span class="placeholder">···</span>'; d.classList.remove('filled','correct','incorrect'); });
+    chips.forEach(c => { c.classList.remove('used','dragging','selected'); c.style.pointerEvents = ''; });
+    selected = null;
+    btnCheck.disabled = true;
+    feedback.className = 'feedback';
+    score.style.display = 'none';
+  });
+</script>
+</body>
+</html>
